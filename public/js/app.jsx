@@ -129,7 +129,12 @@ function Header() {
             <nav className="navbar">
                 <div className="logo" onClick={() => setCurrentPage(user ? 'dashboard' : 'landing')} style={{ cursor: 'pointer' }}>
                     <Icon name="rocket" size={24} />
-                    <span className="logo-text">FoundryAI</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '1.125rem', lineHeight: 1 }}>FoundryAI</span>
+                        <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 500, letterSpacing: '0.03em' }}>
+                            ENTREPRENEURSHIP OS
+                        </span>
+                    </div>
                 </div>
 
                 {!user && (
@@ -152,7 +157,7 @@ function Header() {
 
                 {user && (
                     <div className="nav-actions">
-                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', marginRight: 'var(--space-3)' }}>
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8125rem', marginRight: 'var(--space-3)' }}>
                             {user.name}
                         </span>
                         <button className="btn btn-outline btn-sm" onClick={logout}>
@@ -547,12 +552,38 @@ function Dashboard() {
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-secondary)', paddingTop: 'var(--header-height)' }}>
-            {/* Sidebar */}
+            {/* Sidebar with Grouping */}
             <aside className="sidebar">
                 <nav style={{ padding: '0' }}>
+                    {/* CORE Section */}
+                    <div style={{
+                        padding: '0 var(--space-5)',
+                        marginBottom: 'var(--space-3)',
+                        fontSize: '0.6875rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        color: 'var(--text-muted)',
+                        textTransform: 'uppercase'
+                    }}>
+                        CORE
+                    </div>
                     <SidebarLink active={activeTab === 'overview'} icon="home" label="Overview" onClick={() => setActiveTab('overview')} />
                     <SidebarLink active={activeTab === 'ideas'} icon="lightbulb" label="Ideas" onClick={() => setActiveTab('ideas')} />
                     <SidebarLink active={activeTab === 'copilot'} icon="brain" label="AI Copilot" onClick={() => setActiveTab('copilot')} />
+
+                    {/* BUILD Section */}
+                    <div style={{
+                        padding: '0 var(--space-5)',
+                        marginTop: 'var(--space-6)',
+                        marginBottom: 'var(--space-3)',
+                        fontSize: '0.6875rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        color: 'var(--text-muted)',
+                        textTransform: 'uppercase'
+                    }}>
+                        BUILD
+                    </div>
                     <SidebarLink active={activeTab === 'matches'} icon="users" label="Co-Founders" onClick={() => setActiveTab('matches')} />
                     <SidebarLink active={activeTab === 'resources'} icon="book" label="Resources" onClick={() => setActiveTab('resources')} />
                 </nav>
@@ -576,12 +607,40 @@ function Dashboard() {
 function OverviewTab({ user, ideas, setActiveTab }) {
     return (
         <>
-            <div style={{ marginBottom: 'var(--space-8)' }}>
-                <h1 style={{ marginBottom: 'var(--space-2)' }}>Welcome back, {user.name}</h1>
-                <p style={{ color: 'var(--text-secondary)' }}>Here's what's happening with your ventures</p>
+            <div style={{ marginBottom: 'var(--space-10)' }}>
+                <h1 style={{ marginBottom: 'var(--space-2)', fontSize: '1.75rem', fontWeight: 700 }}>Founder Dashboard</h1>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9375rem', fontWeight: 500 }}>
+                    {user.name} · Early-stage founder
+                </p>
             </div>
 
-            {/* Stats Grid */}
+            {/* Founder Status - The Power Section */}
+            <div className="card" style={{
+                padding: 'var(--space-6)',
+                marginBottom: 'var(--space-10)',
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(139, 92, 246, 0.03) 100%)',
+                border: '1px solid rgba(99, 102, 241, 0.15)'
+            }}>
+                <h4 style={{ marginBottom: 'var(--space-4)', fontSize: '0.8125rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
+                    Founder Status
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-5)' }}>
+                    <div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 'var(--space-1)', fontWeight: 600 }}>Current Focus</div>
+                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)' }}>Validation → MVP</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 'var(--space-1)', fontWeight: 600 }}>Blockers</div>
+                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)' }}>Co-founder, MVP scope</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 'var(--space-1)', fontWeight: 600 }}>Suggested Action</div>
+                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--brand-primary)' }}>Activate co-founder matching</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Stats Grid - Improved */}
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -589,25 +648,28 @@ function OverviewTab({ user, ideas, setActiveTab }) {
                 marginBottom: 'var(--space-10)'
             }}>
                 <StatCard icon="lightbulb" title="Active Ideas" value="3" change="+2 this week" trend="up" />
-                <StatCard icon="check" title="Validations" value="12" change="87% avg score" trend="up" />
-                <StatCard icon="users" title="Matches" value="5" change="2 new" trend="up" />
-                <StatCard icon="clock" title="AI Time" value="24h" change="This month" trend="neutral" />
+                <StatCard icon="check" title="Avg Validation Score" value="87%" change="12 ideas validated" trend="up" />
+                <StatCard icon="users" title="Co-Founder Matches" value="5" change="2 new this week" trend="up" />
+                <StatCard icon="target" title="Stage Progress" value="72%" change="Validation → MVP" trend="neutral" />
             </div>
 
-            {/* Quick Actions */}
+            {/* Recommended Next Steps */}
             <div style={{ marginBottom: 'var(--space-10)' }}>
-                <h3 style={{ marginBottom: 'var(--space-5)' }}>Quick Actions</h3>
+                <h3 style={{ marginBottom: 'var(--space-1)', fontSize: '1.125rem', fontWeight: 600 }}>Recommended Next Steps</h3>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', marginBottom: 'var(--space-5)' }}>
+                    AI-prioritized actions based on your current stage
+                </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-5)' }}>
                     <ActionCard
                         icon="plus"
-                        title="Submit New Idea"
-                        description="Get AI-powered validation in minutes"
+                        title="Submit a New Idea"
+                        description="Structured validation with AI frameworks"
                         onClick={() => setActiveTab('ideas')}
                     />
                     <ActionCard
                         icon="brain"
-                        title="Ask AI Copilot"
-                        description="Get strategic guidance on your venture"
+                        title="Consult AI Copilot"
+                        description="Strategic guidance for your venture"
                         onClick={() => setActiveTab('copilot')}
                     />
                     <ActionCard
@@ -619,9 +681,9 @@ function OverviewTab({ user, ideas, setActiveTab }) {
                 </div>
             </div>
 
-            {/* Recent Ideas */}
+            {/* Your Ideas */}
             <div>
-                <h3 style={{ marginBottom: 'var(--space-5)' }}>Your Ideas</h3>
+                <h3 style={{ marginBottom: 'var(--space-5)', fontSize: '1.125rem', fontWeight: 600 }}>Your Ideas</h3>
                 <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
                     {ideas.map(idea => (
                         <IdeaCard key={idea.id} idea={idea} />
