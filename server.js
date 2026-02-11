@@ -405,6 +405,42 @@ app.post('/api/resources/:id/complete', async (req, res) => {
 });
 
 // =====================================================
+// AI COPILOT ROUTES (Simulated - TODO: Connect to Real LLM)
+// =====================================================
+
+app.post('/api/copilot/chat', async (req, res) => {
+    try {
+        const { userId, ideaId, message } = req.body;
+
+        const aiResponses = [
+            "That's a bold vision! Have you considered the customer acquisition cost in this niche?",
+            "Interesting point. How do you plan to handle the regulatory hurdles for this model in India?",
+            "Let's focus on the MVP. What is the one core feature your 'early adopters' cannot live without?",
+            "I've seen similar models fail on retention. How will you keep users coming back?",
+            "That sounds like a Tier-1 city problem. Is there a version of this for Bharat?"
+        ];
+
+        const aiResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+
+        // Store conversation
+        const messages = [
+            { role: 'user', content: message, timestamp: new Date().toISOString() },
+            { role: 'assistant', content: aiResponse, timestamp: new Date().toISOString() },
+        ];
+
+        const { data, error } = await supabaseAdmin
+            .from('copilot_conversations')
+            .insert([{ user_id: userId, idea_id: ideaId, messages }])
+            .select().single();
+
+        if (error) return res.status(400).json({ success: false, error: error.message });
+        res.json({ success: true, response: aiResponse });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Copilot failed to respond' });
+    }
+});
+
+// =====================================================
 // SPA & SERVER START
 // =====================================================
 
