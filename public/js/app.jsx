@@ -8,7 +8,7 @@ const AppContext = createContext();
 const useAppContext = () => useContext(AppContext);
 
 // API Configuration
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 const api = {
     async post(endpoint, data) {
         const response = await fetch(`${API_URL}${endpoint}`, {
