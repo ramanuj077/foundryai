@@ -457,6 +457,8 @@ app.post('/api/copilot/chat', async (req, res) => {
 
         const apiMessages = [systemMessage, ...messages, { role: "user", content: message }];
 
+        console.log(`AI Chat using Key: ${OPENROUTER_API_KEY.substring(0, 10)}...`);
+
         // 4. Call OpenRouter
         const fetch = getFetch();
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -464,12 +466,17 @@ app.post('/api/copilot/chat', async (req, res) => {
             headers: {
                 "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://foundrytt.vercel.app", // Optional
-                "X-Title": "FoundryAI" // Optional
+                "HTTP-Referer": "https://foundryttt.vercel.app", // Fixed: tripled 't'
+                "X-Title": "FoundryAI"
             },
             body: JSON.stringify({
-                model: "meta-llama/llama-3.1-8b-instruct:free",
-                messages: apiMessages
+                model: "tng/deepseek-r1t2-chimera:free", // User requested TNG: DeepSeek R1T2 Chimera
+                messages: apiMessages,
+                models: [
+                    "tng/deepseek-r1t2-chimera:free",
+                    "google/gemini-2.0-flash-exp:free",
+                    "google/gemini-flash-1.5:free"
+                ]
             })
         });
 
@@ -533,12 +540,17 @@ app.post('/api/ideas/:id/pitch-deck', async (req, res) => {
             headers: {
                 "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://foundrytt.vercel.app",
+                "HTTP-Referer": "https://foundryttt.vercel.app", // Fixed: tripled 't'
                 "X-Title": "FoundryAI"
             },
             body: JSON.stringify({
-                model: "meta-llama/llama-3.1-8b-instruct:free",
-                messages: [{ role: "user", content: prompt }]
+                model: "tng/deepseek-r1t2-chimera:free",
+                messages: [{ role: "user", content: prompt }],
+                models: [
+                    "tng/deepseek-r1t2-chimera:free",
+                    "google/gemini-2.0-flash-exp:free",
+                    "google/gemini-flash-1.5:free"
+                ]
             })
         });
 
