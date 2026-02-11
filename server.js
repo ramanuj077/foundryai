@@ -211,10 +211,35 @@ app.get('/api/ideas/feed', async (req, res) => {
     }
 });
 
+// Helper to ensure user profile exists (Self-Healing)
+async function ensureUserExists(userId) {
+    const { data: profile } = await supabaseAdmin.from('users').select('id').eq('id', userId).single();
+    if (profile) return true;
+
+    // Profile missing, try to heal from Auth
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (authError || !user) return false;
+
+    const { error: createError } = await supabaseAdmin.from('users').insert([{
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.name || user.email.split('@')[0],
+        password_hash: 'auth_handled'
+    }]);
+
+    return !createError;
+}
+
 app.post('/api/ideas/:id/validate', async (req, res) => {
     try {
         const { id } = req.params;
         const { userId, voteType, feedback } = req.body;
+
+        // Ensure user exists before validating (Self-Healing)
+        const userReady = await ensureUserExists(userId);
+        if (!userReady) {
+            return res.status(400).json({ success: false, error: 'User profile missing. Please logout and login again.' });
+        }
 
         const { error: insertError } = await supabaseAdmin
             .from('idea_validations')
@@ -233,6 +258,7 @@ app.post('/api/ideas/:id/validate', async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
+        console.error('Validation error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
