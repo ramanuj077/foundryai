@@ -112,6 +112,7 @@ const Icon = ({ name, size = 20, color = 'currentColor' }) => {
         send: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`,
         video: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`,
         'external-link': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`,
+        play: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
         x: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
     };
 
@@ -192,6 +193,39 @@ function Header() {
 
                 {user && (
                     <div className="nav-actions">
+                        {/* Profile Completion Tracker */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                marginRight: '20px',
+                                padding: '4px 12px',
+                                background: 'var(--bg-tertiary)',
+                                borderRadius: '20px',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => setCurrentPage('profile-setup')}
+                            title="Complete your profile to unlock all features"
+                        >
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                {user.profile_completion_percentage || 0}%
+                            </div>
+                            <div style={{ width: '60px', height: '6px', background: 'var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
+                                <div style={{
+                                    width: `${user.profile_completion_percentage || 0}%`,
+                                    height: '100%',
+                                    background: 'var(--brand-primary)',
+                                    transition: 'width 0.3s ease'
+                                }}></div>
+                            </div>
+                            {user.profile_completion_percentage < 100 && (
+                                <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase' }}>
+                                    Complete Profile
+                                </span>
+                            )}
+                        </div>
+
                         <button
                             onClick={handleBellClick}
                             style={{ position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer', padding: 8, marginRight: 10 }}
@@ -492,136 +526,558 @@ function LoginPage() {
 // PROFILE SETUP
 // ========================
 
+// =====================================================
+// ENHANCED PROFILE SETUP - 10 Step Wizard
+// Production-grade with auto-save, validation, progress tracking
+// =====================================================
+
+// --- STEP COMPONENTS (Defined Outside for Stability) ---
+const Step1Welcome = () => (
+    <div style={{ textAlign: 'center', padding: '40px 0' }}>
+        <div style={{ fontSize: '60px', marginBottom: '24px' }}>🚀</div>
+        <h1 style={{ fontSize: '2rem', marginBottom: '16px' }}>Welcome to FoundryAI!</h1>
+        <p style={{ fontSize: '1.125rem', color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 32px', lineHeight: '1.6' }}>
+            Let's build your profile in <strong>10 quick steps</strong>. This helps us find you the perfect co-founder.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', maxWidth: '600px', margin: '0 auto', textAlign: 'left' }}>
+            {[
+                { icon: '⚡', title: 'Quick Setup', desc: 'Only 15-20 minutes' },
+                { icon: '💾', title: 'Auto-Save', desc: 'Progress saved automatically' },
+                { icon: '🤝', title: 'Smart Matching', desc: 'AI-powered co-founder matches' }
+            ].map(item => (
+                <div key={item.title} style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{item.icon}</div>
+                    <div style={{ fontWeight: 600, marginBottom: '4px' }}>{item.title}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{item.desc}</div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const Step2BasicInfo = ({ formData, updateField }) => (
+    <div>
+        <h2 style={{ marginBottom: '8px' }}>Basic Information</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Tell us about yourself</p>
+
+        <div className="form-group">
+            <label className="form-label">Professional Status *</label>
+            <select className="form-input" value={formData.professional_status} onChange={(e) => updateField('professional_status', e.target.value)}>
+                <option value="">Select status</option>
+                <option value="Student">Student</option>
+                <option value="Working Professional">Working Professional</option>
+                <option value="Freelancer">Freelancer</option>
+                <option value="Entrepreneur">Entrepreneur</option>
+                <option value="Career Break">Career Break</option>
+            </select>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="form-group">
+                <label className="form-label">City *</label>
+                <input type="text" className="form-input" placeholder="e.g., Bangalore" value={formData.city} onChange={(e) => updateField('city', e.target.value)} />
+            </div>
+            <div className="form-group">
+                <label className="form-label">Country *</label>
+                <input type="text" className="form-input" value={formData.country} onChange={(e) => updateField('country', e.target.value)} />
+            </div>
+        </div>
+
+        <div className="form-group">
+            <label className="form-label">LinkedIn Profile URL *</label>
+            <input type="url" className="form-input" placeholder="https://linkedin.com/in/yourprofile" value={formData.linkedin_url} onChange={(e) => updateField('linkedin_url', e.target.value)} />
+        </div>
+
+        <div className="form-group">
+            <label className="form-label">Current Stage *</label>
+            <select className="form-input" value={formData.stage} onChange={(e) => updateField('stage', e.target.value)}>
+                <option value="">Select stage</option>
+                {['Ideation', 'Validation', 'MVP', 'Launch', 'Growth', 'Scaling'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+        </div>
+
+        <div className="form-group">
+            <label className="form-label">Skills (comma-separated) *</label>
+            <input type="text" className="form-input" placeholder="e.g., React, Python, Marketing" value={Array.isArray(formData.skills) ? formData.skills.join(', ') : formData.skills} onChange={(e) => updateField('skills', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} />
+        </div>
+
+        <div className="form-group">
+            <label className="form-label">Bio (2-3 sentences) *</label>
+            <textarea className="form-input" rows="3" placeholder="Tell us about yourself..." value={formData.bio} onChange={(e) => updateField('bio', e.target.value)} maxLength="300" />
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>{formData.bio?.length || 0}/300 characters</div>
+        </div>
+    </div>
+);
+
+const Step3Commitment = ({ formData, updateField }) => (
+    <div>
+        <h2 style={{ marginBottom: '8px' }}>Commitment & Availability</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>This helps match you with founders who have similar availability</p>
+
+        <div className="form-group">
+            <label className="form-label">Can you commit 20+ hours/week for 6 months? *</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+                {[true, false].map(val => (
+                    <button key={String(val)} type="button" className={`btn ${formData.can_commit_20hrs_week === val ? 'btn-primary' : 'btn-outline'}`} onClick={() => updateField('can_commit_20hrs_week', val)}>
+                        {val ? 'Yes' : 'No'}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        <div className="form-group">
+            <label className="form-label">When can you go full-time? *</label>
+            <select className="form-input" value={formData.can_go_fulltime} onChange={(e) => updateField('can_go_fulltime', e.target.value)}>
+                <option value="">Select timeline</option>
+                {['Now', '3 months', '6 months', '1 year', 'Never'].map(t => <option key={t} value={t}>{t === 'Now' ? 'Now - Ready to go full-time' : t === 'Never' ? "Can't go full-time" : `In ${t}`}</option>)}
+            </select>
+        </div>
+
+        <div className="form-group">
+            <label className="form-label">Okay with ₹0 salary initially? *</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+                {[true, false].map(val => (
+                    <button key={String(val)} type="button" className={`btn ${formData.okay_with_zero_salary === val ? 'btn-primary' : 'btn-outline'}`} onClick={() => updateField('okay_with_zero_salary', val)}>
+                        {val ? 'Yes' : 'No'}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        {formData.okay_with_zero_salary && (
+            <div className="form-group">
+                <label className="form-label">How long without pay?</label>
+                <select className="form-input" value={formData.work_without_pay_duration} onChange={(e) => updateField('work_without_pay_duration', e.target.value)}>
+                    <option value="">Select duration</option>
+                    {['3 months', '6 months', '1 year', '2+ years'].map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+            </div>
+        )}
+    </div>
+);
+
+const Step4LookingFor = ({ formData, updateField }) => (
+    <div>
+        <h2>What You're Looking For</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Help us find your perfect co-founder match</p>
+        <div className="form-group">
+            <label className="form-label">Looking for *</label>
+            <select className="form-input" value={formData.looking_for} onChange={(e) => updateField('looking_for', e.target.value)}>
+                <option value="">Select type</option>
+                {['Technical', 'Business', 'Product', 'Marketing', 'Domain Expert', 'Any'].map(t => <option key={t} value={t}>{t} Co-Founder</option>)}
+            </select>
+        </div>
+        <div className="form-group">
+            <label className="form-label">Remote preference *</label>
+            <select className="form-input" value={formData.remote_preference} onChange={(e) => updateField('remote_preference', e.target.value)}>
+                <option value="">Select preference</option>
+                <option value="Same City">Same City</option>
+                <option value="Same Country">Same Country</option>
+                <option value="Fully Remote">Fully Remote</option>
+            </select>
+        </div>
+    </div>
+);
+
+const Step5Expertise = ({ formData, updateField }) => (
+    <div>
+        <h2>Your Expertise</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>What's your primary skill?</p>
+        <div className="form-group">
+            <label className="form-label">Primary Skill *</label>
+            <select className="form-input" value={formData.primary_skill} onChange={(e) => updateField('primary_skill', e.target.value)}>
+                <option value="">Select skill</option>
+                {['Engineering', 'Product', 'Business', 'Marketing', 'Operations', 'Sales', 'Design'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+        </div>
+        <div className="form-group">
+            <label className="form-label">GitHub (optional)</label>
+            <input type="url" className="form-input" placeholder="https://github.com/username" value={formData.github_url} onChange={(e) => updateField('github_url', e.target.value)} />
+        </div>
+    </div>
+);
+
+const Step6IdeaIndustry = ({ formData, updateField }) => (
+    <div>
+        <h2>Idea & Industry</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>What are you building?</p>
+        <div className="form-group">
+            <label className="form-label">Do you have an idea? *</label>
+            <select className="form-input" value={formData.has_idea} onChange={(e) => updateField('has_idea', e.target.value)}>
+                <option value="">Select option</option>
+                {['Yes', 'Multiple', 'No', 'Open'].map(o => <option key={o} value={o}>{o === 'Yes' ? 'Yes - I have a clear idea' : o === 'No' ? 'No - Looking to join' : o}</option>)}
+            </select>
+        </div>
+        <div className="form-group">
+            <label className="form-label">Industry interests *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px' }}>
+                {['AI/ML', 'FinTech', 'EdTech', 'HealthTech', 'SaaS', 'E-commerce'].map(i => (
+                    <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px', background: formData.industry_interests?.includes(i) ? 'var(--brand-primary)' : 'var(--bg-tertiary)', color: formData.industry_interests?.includes(i) ? '#fff' : 'inherit', borderRadius: '6px', cursor: 'pointer', fontSize: '0.875rem' }}>
+                        <input type="checkbox" checked={formData.industry_interests?.includes(i)} onChange={(e) => {
+                            const current = formData.industry_interests || [];
+                            updateField('industry_interests', e.target.checked ? [...current, i] : current.filter(x => x !== i));
+                        }} style={{ display: 'none' }} />
+                        {i}
+                    </label>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+const Step7EquityMoney = ({ formData, updateField }) => (
+    <div>
+        <h2>Equity & Money</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Business expectations</p>
+        <div className="form-group">
+            <label className="form-label">Expected equity *</label>
+            <select className="form-input" value={formData.expected_equity} onChange={(e) => updateField('expected_equity', e.target.value)}>
+                <option value="">Select</option>
+                {['Equal', 'Negotiable', 'Depends'].map(e => <option key={e} value={e}>{e}</option>)}
+            </select>
+        </div>
+        <div className="form-group">
+            <label className="form-label">Okay with vesting?</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+                {[true, false].map(val => (
+                    <button key={String(val)} type="button" className={`btn ${formData.okay_with_vesting === val ? 'btn-primary' : 'btn-outline'}`} onClick={() => updateField('okay_with_vesting', val)}>
+                        {val ? 'Yes' : 'No'}
+                    </button>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+const Step8WorkingStyle = ({ formData, updateField }) => (
+    <div>
+        <h2>Working Style</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>How do you work?</p>
+        <div className="form-group">
+            <label className="form-label">Decision-making style *</label>
+            <select className="form-input" value={formData.decision_making_style} onChange={(e) => updateField('decision_making_style', e.target.value)}>
+                <option value="">Select</option>
+                {['Data-driven', 'Intuition', 'Consensus'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+        </div>
+        <div className="form-group">
+            <label className="form-label">Core values (select up to 3) *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px' }}>
+                {['Transparency', 'Speed', 'Quality', 'Ethics', 'Growth', 'Impact'].map(v => (
+                    <label key={v} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px', background: formData.core_values?.includes(v) ? 'var(--brand-primary)' : 'var(--bg-tertiary)', color: formData.core_values?.includes(v) ? '#fff' : 'inherit', borderRadius: '6px', cursor: 'pointer', fontSize: '0.875rem', opacity: formData.core_values?.length >= 3 && !formData.core_values?.includes(v) ? 0.5 : 1 }}>
+                        <input type="checkbox" checked={formData.core_values?.includes(v)} onChange={(e) => {
+                            const current = formData.core_values || [];
+                            if (e.target.checked && current.length >= 3) return;
+                            updateField('core_values', e.target.checked ? [...current, v] : current.filter(x => x !== v));
+                        }} disabled={formData.core_values?.length >= 3 && !formData.core_values?.includes(v)} style={{ display: 'none' }} />
+                        {v}
+                    </label>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+const Step9RiskFailure = ({ formData, updateField }) => (
+    <div>
+        <h2>Risk & Experience</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Your journey</p>
+        <div className="form-group">
+            <label className="form-label">Built something before? *</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+                {[true, false].map(val => (
+                    <button key={String(val)} type="button" className={`btn ${formData.has_built_before === val ? 'btn-primary' : 'btn-outline'}`} onClick={() => updateField('has_built_before', val)}>
+                        {val ? 'Yes' : 'No - First time!'}
+                    </button>
+                ))}
+            </div>
+        </div>
+        <div className="form-group">
+            <label className="form-label">Comfortable with uncertainty?</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+                {[true, false].map(val => (
+                    <button key={String(val)} type="button" className={`btn ${formData.comfortable_with_uncertainty === val ? 'btn-primary' : 'btn-outline'}`} onClick={() => updateField('comfortable_with_uncertainty', val)}>
+                        {val ? "Yes - I'm ready" : 'Not sure'}
+                    </button>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+const Step10Premium = ({ formData, updateField }) => (
+    <div>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
+            <h2 style={{ marginBottom: '8px' }}>Premium Signals (Optional)</h2>
+            <p style={{ color: 'var(--text-secondary)' }}>Boost your match quality!</p>
+        </div>
+        <div className="form-group">
+            <label className="form-label">Willing to do trial project?</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+                {[true, false].map(val => (
+                    <button key={String(val)} type="button" className={`btn ${formData.trial_project_willing === val ? 'btn-primary' : 'btn-outline'}`} onClick={() => updateField('trial_project_willing', val)}>
+                        {val ? 'Yes' : 'No'}
+                    </button>
+                ))}
+            </div>
+        </div>
+        <div className="form-group">
+            <label className="form-label">Why are you a 10/10 co-founder?</label>
+            <textarea className="form-input" rows="4" placeholder="Sell yourself!" value={formData.why_10_10_cofounder} onChange={(e) => updateField('why_10_10_cofounder', e.target.value)} maxLength="500" />
+        </div>
+        <div style={{ marginTop: '40px', padding: '20px', background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-hover))', borderRadius: '12px', color: '#fff', textAlign: 'center' }}>
+            <h3 style={{ marginBottom: '8px', fontSize: '1.25rem' }}>🎉 You're All Set!</h3>
+            <p style={{ fontSize: '0.9375rem', opacity: 0.95 }}>Click "Complete Profile" to start finding amazing co-founders!</p>
+        </div>
+    </div>
+);
+
 function ProfileSetupPage() {
     const { user, setUser, setCurrentPage } = useAppContext();
-    const [stage, setStage] = useState('');
-    const [bio, setBio] = useState('');
-    const [skills, setSkills] = useState('');
-    const [location, setLocation] = useState('');
+    const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [autoSaving, setAutoSaving] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+    // Comprehensive form state
+    const [formData, setFormData] = React.useState({
+        // Tier 2: Basic Profile (30%)
+        professional_status: user.professional_status || '',
+        city: user.city || user.location?.split(',')[0] || '',
+        country: user.country || 'India',
+        linkedin_url: user.linkedin_url || '',
+        skills: user.skills || [],
+        bio: user.bio || '',
+        stage: user.stage || '',
 
+        // Tier 3: Co-Founder Matching
+        can_commit_20hrs_week: user.can_commit_20hrs_week,
+        can_go_fulltime: user.can_go_fulltime || '',
+        okay_with_zero_salary: user.okay_with_zero_salary,
+        work_without_pay_duration: user.work_without_pay_duration || '',
+        looking_for: user.looking_for || '',
+        must_have_skills: user.must_have_skills || '',
+        deal_breakers: user.deal_breakers || [],
+        remote_preference: user.remote_preference || '',
+        primary_skill: user.primary_skill || '',
+        tech_stack: user.tech_stack || {},
+        github_url: user.github_url || '',
+        portfolio_url: user.portfolio_url || '',
+        has_idea: user.has_idea || '',
+        idea_stage: user.idea_stage || '',
+        industry_interests: user.industry_interests || [],
+        open_to_pivot: user.open_to_pivot,
+        expected_equity: user.expected_equity || '',
+        okay_with_vesting: user.okay_with_vesting,
+        willing_to_invest_money: user.willing_to_invest_money,
+        investment_amount_range: user.investment_amount_range || '',
+        decision_making_style: user.decision_making_style || '',
+        conflict_handling: user.conflict_handling || '',
+        work_style: user.work_style || '',
+        core_values: user.core_values || [],
+        has_built_before: user.has_built_before,
+        previous_failure_reason: user.previous_failure_reason || '',
+        quit_triggers: user.quit_triggers || '',
+        comfortable_with_uncertainty: user.comfortable_with_uncertainty,
+
+        // Tier 4: Premium
+        trial_project_willing: user.trial_project_willing,
+        why_10_10_cofounder: user.why_10_10_cofounder || '',
+        intro_video_url: user.intro_video_url || '',
+        willing_to_sign_agreements: user.willing_to_sign_agreements
+    });
+
+
+    // Fetch latest profile data on mount
+    React.useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await fetch(`/api/users/${user.id}/profile`);
+                const data = await res.json();
+                if (data.success && data.user) {
+                    // Update user context first
+                    const updatedUser = { ...user, ...data.user };
+                    setUser(updatedUser);
+                    localStorage.setItem('user', JSON.stringify(updatedUser)); // Update local storage
+
+                    // Update form data with fetched values
+                    setFormData(prev => ({
+                        ...prev,
+                        ...data.user,
+                        deal_breakers: data.user.deal_breakers || [],
+                        industry_interests: data.user.industry_interests || [],
+                        core_values: data.user.core_values || [],
+                        skills: data.user.skills || []
+                    }));
+                }
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        };
+        fetchProfile();
+    }, []); // Run once on mount
+
+    // Auto-save with debouncing
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            if (currentStep > 1 && !loading) {
+                handleAutoSave();
+            }
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [formData, currentStep]);
+
+    const handleAutoSave = async () => {
+        setAutoSaving(true);
         try {
-            // Convert skills string to array
-            const skillsArray = skills.split(',').map(s => s.trim()).filter(s => s);
+            await fetch(`/api/users/${user.id}/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        } catch (e) {
+            console.error('Auto-save error:', e);
+        } finally {
+            setTimeout(() => setAutoSaving(false), 500);
+        }
+    };
 
+    const updateField = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleNext = async () => {
+        setError('');
+        if (!validateCurrentStep()) return;
+
+        if (currentStep === 10) {
+            await handleFinalSubmit();
+        } else {
+            setCurrentStep(currentStep + 1);
+        }
+    };
+
+    const handleBack = () => {
+        if (currentStep > 1) setCurrentStep(currentStep - 1);
+    };
+
+    const validateCurrentStep = () => {
+        if (currentStep === 2) {
+            if (!formData.professional_status || !formData.city || !formData.linkedin_url || !formData.stage) {
+                setError('Please fill in all required fields');
+                return false;
+            }
+        }
+        if (currentStep === 3) {
+            if (formData.can_commit_20hrs_week === undefined || formData.okay_with_zero_salary === undefined) {
+                setError('Please answer all commitment questions');
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const handleFinalSubmit = async () => {
+        setLoading(true);
+        try {
             const response = await fetch(`/api/users/${user.id}/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    stage,
-                    bio,
-                    skills: skillsArray,
-                    location
-                })
+                body: JSON.stringify(formData)
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Update user in localStorage
-                const updatedUser = { ...user, stage, bio, skills: skillsArray, location };
+                const updatedUser = { ...user, ...data.user };
                 setUser(updatedUser);
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 setCurrentPage('dashboard');
             } else {
-                setError(data.error || 'Failed to update profile');
+                setError(data.error || 'Failed to save profile');
             }
         } catch (error) {
-            console.error('Update error:', error);
-            setError(error.message || 'Failed to update profile');
+            setError('Network error. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-    return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-8)', background: 'var(--bg-secondary)' }}>
-            <div className="card" style={{ maxWidth: '600px', width: '100%', padding: 'var(--space-8)' }}>
-                <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
-                    <div style={{ marginBottom: 'var(--space-4)' }}>
-                        <Icon name="user" size={40} color="var(--brand-primary)" />
-                    </div>
-                    <h2 style={{ marginBottom: 'var(--space-2)' }}>Complete Your Profile</h2>
-                    <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9375rem' }}>
-                        Tell us about your entrepreneurial journey
-                    </p>
-                </div>
+    const progress = Math.min(((currentStep - 1) / 10) * 100, 100);
 
+
+
+
+    // Helper to render current step without remounting (fixes focus issue)
+    const renderCurrentStep = () => {
+        switch (currentStep) {
+            case 1: return <Step1Welcome />;
+            case 2: return <Step2BasicInfo formData={formData} updateField={updateField} />;
+            case 3: return <Step3Commitment formData={formData} updateField={updateField} />;
+            case 4: return <Step4LookingFor formData={formData} updateField={updateField} />;
+            case 5: return <Step5Expertise formData={formData} updateField={updateField} />;
+            case 6: return <Step6IdeaIndustry formData={formData} updateField={updateField} />;
+            case 7: return <Step7EquityMoney formData={formData} updateField={updateField} />;
+            case 8: return <Step8WorkingStyle formData={formData} updateField={updateField} />;
+            case 9: return <Step9RiskFailure formData={formData} updateField={updateField} />;
+            case 10: return <Step10Premium formData={formData} updateField={updateField} />;
+            default: return null;
+        }
+    };
+
+
+
+
+    const handleSaveAndExit = async () => {
+        // Force immediate save
+        await fetch(`/api/users/${user.id}/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        setCurrentPage('dashboard');
+    };
+
+    return (
+        <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', padding: '40px 20px' }}>
+            {/* Progress Bar */}
+            <div style={{ maxWidth: '800px', margin: '0 auto 30px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Step {currentStep} of 10</span>
+                    <span style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{autoSaving ? '💾 Saving...' : '✓ Saved'}</span>
+                </div>
+                <div style={{ height: '6px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, var(--brand-primary), var(--brand-hover))', transition: 'width 0.3s ease' }} />
+                </div>
+            </div>
+
+            {/* Main Card */}
+            <div className="card" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px' }}>
                 {error && (
-                    <div style={{ padding: 'var(--space-4)', marginBottom: 'var(--space-6)', background: '#fee', borderRadius: 'var(--radius-md)', color: '#c00', fontSize: '0.875rem' }}>
+                    <div style={{ padding: '12px 16px', marginBottom: '24px', background: '#fee', borderRadius: '8px', color: '#c00', fontSize: '0.875rem' }}>
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label">Current Stage</label>
-                        <select
-                            className="form-input"
-                            value={stage}
-                            onChange={(e) => setStage(e.target.value)}
-                            required
-                        >
-                            <option value="">Select your stage</option>
-                            <option value="Ideation">Ideation</option>
-                            <option value="Validation">Validation</option>
-                            <option value="MVP">MVP Development</option>
-                            <option value="Launch">Launch</option>
-                            <option value="Growth">Growth</option>
-                            <option value="Scaling">Scaling</option>
-                        </select>
-                    </div>
+                {renderCurrentStep()}
 
-                    <div className="form-group">
-                        <label className="form-label">Location</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="e.g., Bangalore, India"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            required
-                        />
+                {/* Navigation */}
+                <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
+                    <div>
+                        {currentStep > 1 && (
+                            <button type="button" className="btn btn-outline" onClick={handleBack}>← Back</button>
+                        )}
                     </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Skills (comma-separated)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="e.g., React, Node.js, Marketing, Design"
-                            value={skills}
-                            onChange={(e) => setSkills(e.target.value)}
-                            required
-                        />
-                        <small style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginTop: 'var(--space-2)', display: 'block' }}>
-                            Separate skills with commas
-                        </small>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        {currentStep < 8 && (
+                            <button type="button" className="btn btn-outline" onClick={handleSaveAndExit}>Save & Continue Later</button>
+                        )}
+                        <button type="button" className="btn btn-primary" onClick={handleNext} disabled={loading}>
+                            {loading ? 'Saving...' : currentStep === 10 ? 'Complete Profile' : 'Next →'}
+                        </button>
                     </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Bio</label>
-                        <textarea
-                            className="form-input"
-                            placeholder="Tell us about your background and what you're building..."
-                            value={bio}
-                            onChange={(e) => setBio(e.target.value)}
-                            rows={4}
-                            required
-                            style={{ resize: 'vertical' }}
-                        />
-                    </div>
-
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-                        {loading ? 'Saving...' : 'Complete Setup'}
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
     );
@@ -1422,19 +1878,38 @@ function CopilotTab() {
 }
 
 function MatchesTab() {
-    const { user } = useAppContext();
+    const { user, setUser, setCurrentPage } = useAppContext();
     const [matches, setMatches] = useState([]);
     const [requests, setRequests] = useState([]);
     const [sentRequests, setSentRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [profileData, setProfileData] = useState(null);
+
+    // Filters
+    const [minScore, setMinScore] = useState(50);
+    const [selectedSkill, setSelectedSkill] = useState('');
+    const [selectedLocation, setSelectedLocation] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
 
     const fetchData = async () => {
         try {
-            // Fetch potential matches
-            const matchRes = await fetch(`/api/matches?userId=${user.id}`);
+            // Fetch user profile first to check completion
+            const profileRes = await fetch(`/api/users/${user.id}/profile`);
+            const profileData = await profileRes.json();
+            if (profileData.success) {
+                setProfileData(profileData.user);
+            }
+
+            // Fetch potential matches with filters
+            let matchUrl = `/api/matches?userId=${user.id}&minScore=${minScore}`;
+            const matchRes = await fetch(matchUrl);
             const matchData = await matchRes.json();
+
             if (matchData.success) {
-                setMatches(matchData.matches);
+                setMatches(matchData.matches || []);
+            } else if (matchData.tier_required) {
+                // User hasn't completed enough of profile
+                setProfileData({ ...profileData.user, needs_tier: matchData.tier_required });
             }
 
             // Fetch incoming and sent requests
@@ -1454,7 +1929,7 @@ function MatchesTab() {
 
     React.useEffect(() => {
         fetchData();
-    }, [user.id]);
+    }, [user.id, minScore]);
 
     const handleConnect = async (matchUserId) => {
         try {
@@ -1465,8 +1940,8 @@ function MatchesTab() {
             });
             const data = await res.json();
             if (data.success) {
-                alert('Request Sent Successfully! The user has been notified.');
-                fetchData(); // Refresh immediately to update UI status
+                alert('🎉 Connection Request Sent! They\'ll be notified.');
+                fetchData();
             } else {
                 alert(data.error || 'Failed to send request');
             }
@@ -1482,6 +1957,9 @@ function MatchesTab() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
             });
+            if (status === 'accepted') {
+                alert('🤝 Connection Accepted! You can now message them.');
+            }
             fetchData();
         } catch (e) {
             console.error(e);
@@ -1489,34 +1967,176 @@ function MatchesTab() {
         }
     };
 
+    // Apply client-side filters
+    const filteredMatches = matches.filter(m => {
+        if (m.match_score < minScore) return false;
+        if (selectedSkill && !(m.skills || []).some(s => s.toLowerCase().includes(selectedSkill.toLowerCase()))) {
+            return false;
+        }
+        if (selectedLocation && !(m.city || '').toLowerCase().includes(selectedLocation.toLowerCase())) {
+            return false;
+        }
+        return true;
+    });
 
-    if (loading) return <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--text-secondary)' }}>Finding ideal co-founders...</div>;
+    if (loading) {
+        return (
+            <div style={{ padding: 'var(--space-12)', textAlign: 'center' }}>
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>🔍</div>
+                <h3 style={{ marginBottom: '8px', color: 'var(--text-secondary)' }}>Finding ideal co-founders...</h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>Analyzing profiles for best matches</p>
+            </div>
+        );
+    }
+
+    // Profile Completion Gate
+    const completionPercentage = profileData?.profile_completion_percentage || 0;
+    if (completionPercentage < 80) {
+        return (
+            <div>
+                <div style={{ marginBottom: 'var(--space-8)' }}>
+                    <h1 style={{ marginBottom: 'var(--space-2)' }}>Co-Founder Matches</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>Find your perfect co-founder match</p>
+                </div>
+
+                <div className="card" style={{ padding: 'var(--space-8)', textAlign: 'center', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)' }}>
+                    <div style={{ fontSize: '64px', marginBottom: '24px' }}>🔒</div>
+                    <h2 style={{ marginBottom: '16px', fontSize: '1.5rem' }}>Complete Your Profile to Unlock Matches</h2>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', maxWidth: '500px', margin: '0 auto 32px' }}>
+                        You're {completionPercentage}% there! Complete your profile to access our intelligent co-founder matching system.
+                    </p>
+
+                    {/* Progress Bar */}
+                    <div style={{ maxWidth: '400px', margin: '0 auto 24px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                            <span style={{ fontWeight: 600 }}>Profile Completion</span>
+                            <span style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>{completionPercentage}%</span>
+                        </div>
+                        <div style={{ height: '12px', background: '#e5e7eb', borderRadius: '20px', overflow: 'hidden' }}>
+                            <div style={{
+                                height: '100%',
+                                width: `${completionPercentage}%`,
+                                background: 'linear-gradient(90deg, var(--brand-primary), var(--brand-hover))',
+                                transition: 'width 0.3s ease',
+                                borderRadius: '20px'
+                            }} />
+                        </div>
+                    </div>
+
+                    <button
+                        className="btn btn-primary"
+                        style={{ fontSize: '1rem', padding: '12px 32px' }}
+                        onClick={() => setCurrentPage('profile-setup')}
+                    >
+                        Complete Profile Now →
+                    </button>
+
+                    <div style={{ marginTop: '32px', padding: '20px', background: 'var(--bg-tertiary)', borderRadius: '12px', textAlign: 'left' }}>
+                        <h4 style={{ marginBottom: '12px', fontSize: '0.9375rem', fontWeight: 600 }}>What you'll unlock at 80%:</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '8px' }}>
+                            {['Smart co-founder matching algorithm', 'Connection requests & networking', 'Private messaging with matches', 'Priority in search results'].map(item => (
+                                <li key={item} style={{ display: 'flex', alignItems: 'start', gap: '8px', fontSize: '0.875rem' }}>
+                                    <span style={{ color: 'var(--brand-primary)', marginTop: '2px' }}>✓</span>
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
-            <div style={{ marginBottom: 'var(--space-8)' }}>
-                <h1 style={{ marginBottom: 'var(--space-2)' }}>Co-Founder Matches</h1>
-                <p style={{ color: 'var(--text-secondary)' }}>Expand your network and find partners.</p>
+            {/* Header */}
+            <div style={{ marginBottom: 'var(--space-8)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                    <h1 style={{ marginBottom: 'var(--space-2)' }}>Co-Founder Matches</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>
+                        {filteredMatches.length} match{filteredMatches.length !== 1 ? 'es' : ''} found
+                        {profileData?.tier_4_complete && <span style={{ color: 'var(--brand-primary)', marginLeft: '8px' }}>✨ Premium Profile</span>}
+                    </p>
+                </div>
+                <button
+                    className="btn btn-outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                    <Icon name="filter" size={16} />
+                    Filters {showFilters ? '▲' : '▼'}
+                </button>
             </div>
 
-            {/* Incoming Requests Section */}
-            {(requests.length > 0 || sentRequests.length > 0) && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 40 }}>
+            {/* Filters Panel */}
+            {showFilters && (
+                <div className="card" style={{ padding: 'var(--space-6)', marginBottom: 'var(--space-6)', background: 'var(--bg-tertiary)' }}>
+                    <h4 style={{ marginBottom: 'var(--space-4)', fontSize: '0.9375rem', fontWeight: 600 }}>Filter Matches</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.8125rem' }}>Min Match Score</label>
+                            <select className="form-input" value={minScore} onChange={(e) => setMinScore(Number(e.target.value))}>
+                                <option value="0">All Matches</option>
+                                <option value="50">50%+</option>
+                                <option value="60">60%+</option>
+                                <option value="70">70%+ (Recommended)</option>
+                                <option value="80">80%+ (High Quality)</option>
+                            </select>
+                        </div>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.8125rem' }}>Skill Filter</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="e.g., React, Marketing"
+                                value={selectedSkill}
+                                onChange={(e) => setSelectedSkill(e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.8125rem' }}>Location</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="e.g., Bangalore"
+                                value={selectedLocation}
+                                onChange={(e) => setSelectedLocation(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
+            {/* Requests Section */}
+            {(requests.length > 0 || sentRequests.length > 0) && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-5)', marginBottom: 'var(--space-8)' }}>
                     {requests.length > 0 && (
-                        <div style={{ background: '#fff', padding: 20, borderRadius: 12, border: '1px solid #e5e7eb' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Icon name="bell" size={18} color="var(--brand-primary)" /> Incoming requests ({requests.length})
+                        <div className="card" style={{ padding: 'var(--space-6)', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '2px solid var(--brand-primary)' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Icon name="bell" size={18} color="var(--brand-primary)" />
+                                Incoming Requests ({requests.length})
                             </h3>
                             {requests.map(req => (
-                                <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                                     <div>
-                                        <div style={{ fontWeight: 600 }}>{req.sender?.name}</div>
-                                        <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{req.sender?.role}</div>
+                                        <div style={{ fontWeight: 600, marginBottom: '4px' }}>{req.sender?.name}</div>
+                                        <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>{req.sender?.primary_skill || req.sender?.role}</div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: 5 }}>
-                                        <button className="btn btn-sm btn-primary" onClick={() => handleRespond(req.id, 'accepted')}><Icon name="check" size={14} /></button>
-                                        <button className="btn btn-sm btn-outline" onClick={() => handleRespond(req.id, 'rejected')}><Icon name="x" size={14} /></button>
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                        <button
+                                            className="btn btn-sm btn-primary"
+                                            onClick={() => handleRespond(req.id, 'accepted')}
+                                            style={{ padding: '6px 12px' }}
+                                        >
+                                            <Icon name="check" size={14} /> Accept
+                                        </button>
+                                        <button
+                                            className="btn btn-sm btn-outline"
+                                            onClick={() => handleRespond(req.id, 'rejected')}
+                                            style={{ padding: '6px 12px' }}
+                                        >
+                                            <Icon name="x" size={14} />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -1524,44 +2144,60 @@ function MatchesTab() {
                     )}
 
                     {sentRequests.length > 0 && (
-                        <div style={{ background: '#fff', padding: 20, borderRadius: 12, border: '1px solid #e5e7eb' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Icon name="send" size={18} color="#6b7280" /> Sent requests ({sentRequests.length})
+                        <div className="card" style={{ padding: 'var(--space-6)' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Icon name="send" size={18} color="var(--text-secondary)" />
+                                Sent Requests ({sentRequests.length})
                             </h3>
                             {sentRequests.map(req => (
-                                <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                                     <div>
-                                        <div style={{ fontWeight: 600 }}>{req.receiver?.name}</div>
-                                        <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Waiting for response...</div>
+                                        <div style={{ fontWeight: 600, marginBottom: '4px' }}>{req.recipient?.name}</div>
+                                        <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>Waiting for response...</div>
                                     </div>
-                                    <span className="badge" style={{ background: '#f3f4f6', color: '#6b7280' }}>Pending</span>
+                                    <span className="badge" style={{ background: '#FEF3C7', color: '#92400E', padding: '4px 12px', fontSize: '0.75rem', fontWeight: 600 }}>Pending</span>
                                 </div>
                             ))}
                         </div>
                     )}
-
                 </div>
             )}
 
-            <h3 style={{ marginBottom: 'var(--space-4)', fontSize: '1.125rem', fontWeight: 700 }}>Suggested Matches</h3>
+            {/* Matches Grid */}
+            <h3 style={{ marginBottom: 'var(--space-5)', fontSize: '1.125rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="users" size={20} />
+                Suggested Matches
+            </h3>
 
-            {matches.length === 0 ? (
+            {filteredMatches.length === 0 ? (
                 <div className="card" style={{ padding: 'var(--space-12)', textAlign: 'center' }}>
-                    <div style={{ marginBottom: 'var(--space-4)', color: 'var(--text-tertiary)' }}>
-                        <Icon name="users" size={48} color="var(--text-disabled)" />
-                    </div>
-                    <p>No matches found yet. Try updating your profile with more skills!</p>
+                    <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔍</div>
+                    <h3 style={{ marginBottom: '8px' }}>No matches found</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
+                        {selectedSkill || selectedLocation ? 'Try adjusting your filters' : 'Complete more of your profile for better matches!'}
+                    </p>
+                    {(selectedSkill || selectedLocation) && (
+                        <button
+                            className="btn btn-outline"
+                            onClick={() => {
+                                setSelectedSkill('');
+                                setSelectedLocation('');
+                            }}
+                        >
+                            Clear Filters
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-5)' }}>
-                    {matches.map(match => (
+                    {filteredMatches.map(match => (
                         <CoFounderCard
                             key={match.id}
                             name={match.name}
-                            role={match.role || 'Founder'}
+                            role={match.primary_skill || match.role || 'Founder'}
                             stage={match.stage}
                             skills={match.skills || []}
-                            location={match.location || 'Remote'}
+                            location={`${match.city || 'Remote'}${match.country ? ', ' + match.country : ''}`}
                             match={match.match_score || 85}
                             status={match.connection_status}
                             onConnect={() => handleConnect(match.id)}
@@ -1572,7 +2208,6 @@ function MatchesTab() {
         </>
     );
 }
-
 function MessagesTab() {
     const { user } = useAppContext();
     const [connections, setConnections] = useState([]);
@@ -1746,20 +2381,234 @@ function MessagesTab() {
 
 
 function ResourcesTab() {
+    const { user, setUser } = useAppContext();
+    const [resources, setResources] = useState([]);
+    const [selectedResource, setSelectedResource] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [completing, setCompleting] = useState(false);
+
+    useEffect(() => {
+        const fetchResources = async () => {
+            try {
+                const res = await fetch('/api/resources');
+                const data = await res.json();
+                if (data.success) {
+                    setResources(data.resources);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchResources();
+    }, []);
+
+    const getYouTubeId = (url) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+
+    const handleComplete = async (resource) => {
+        if (!user || completing) return;
+        setCompleting(true);
+        try {
+            const res = await fetch(`/api/resources/${resource.id}/complete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, duration: resource.duration })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Only update points if points were actually awarded
+                if (data.awarded && data.awarded > 0) {
+                    const updatedUser = { ...user, points: data.points };
+                    setUser(updatedUser);
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    alert(`Content Completed! +${data.awarded} XP Earned!`);
+                    setSelectedResource(null);
+                } else {
+                    // Already completed - don't update points
+                    alert('You have already completed this video!');
+                }
+            } else {
+                alert(data.error || 'Failed to complete');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error completing resource');
+        } finally {
+            setCompleting(false);
+        }
+    };
+
     return (
         <>
-            <div style={{ marginBottom: 'var(--space-8)' }}>
-                <h1 style={{ marginBottom: 'var(--space-2)' }}>Resources</h1>
-                <p style={{ color: 'var(--text-secondary)' }}>Learn and grow with curated content</p>
+            <div style={{ marginBottom: 'var(--space-8)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                    <h1 style={{ marginBottom: 'var(--space-2)' }}>Startup School</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>Masterclass videos from the world's best founders</p>
+                </div>
+                {user && (
+                    <div style={{ background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', padding: '8px 16px', borderRadius: '20px', color: '#000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 10px rgba(255, 215, 0, 0.3)' }}>
+                        <Icon name="target" size={18} color="#000" />
+                        <span>{user.points || 0} XP</span>
+                    </div>
+                )}
             </div>
 
-            <div className="card" style={{ padding: 'var(--space-12)', textAlign: 'center' }}>
-                <div style={{ color: 'var(--brand-primary)', marginBottom: 'var(--space-4)' }}>
-                    <Icon name="book" size={64} color="var(--brand-primary)" />
+            {loading ? (
+                <div>Loading videos...</div>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-6)' }}>
+                    {resources.map(resource => {
+                        const videoId = getYouTubeId(resource.url);
+                        return (
+                            <div key={resource.id} className="card"
+                                style={{
+                                    padding: 0,
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                    height: '100%'
+                                }}
+                                onClick={() => setSelectedResource(resource)}
+                                onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }}
+                                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
+                            >
+                                <div style={{
+                                    height: 180,
+                                    background: '#000',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}>
+                                    {videoId ? (
+                                        <img
+                                            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                                            onError={(e) => { e.target.onerror = null; e.target.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`; }}
+                                            alt={resource.title}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'white' }}>
+                                            <Icon name="video" size={48} />
+                                        </div>
+                                    )}
+
+                                    <div style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        background: 'rgba(0,0,0,0.3)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'background 0.2s'
+                                    }}>
+                                        <div style={{
+                                            background: 'rgba(255,255,255,0.9)',
+                                            borderRadius: '50%',
+                                            width: 48,
+                                            height: 48,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+                                        }}>
+                                            <Icon name="play" size={20} color="var(--brand-primary)" style={{ marginLeft: 3 }} />
+                                        </div>
+                                    </div>
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: 10,
+                                        right: 10,
+                                        background: 'rgba(0,0,0,0.8)',
+                                        color: '#fff',
+                                        padding: '2px 6px',
+                                        borderRadius: 4,
+                                        fontSize: '0.7rem',
+                                        fontWeight: 600
+                                    }}>
+                                        {resource.duration}
+                                    </div>
+                                </div>
+                                <div style={{ padding: 'var(--space-5)', flex: 1, display: 'flex', flexDirection: 'column' }}>
+
+                                    <h3 style={{ fontSize: '1.1rem', marginBottom: 'var(--space-2)', lineHeight: 1.4, fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{resource.title}</h3>
+
+                                    <div style={{ marginTop: 'auto', display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span style={{
+                                            fontSize: '0.7rem',
+                                            background: resource.difficulty === 'Beginner' ? '#ecfdf5' : resource.difficulty === 'Advanced' ? '#fef2f2' : '#eff6ff',
+                                            color: resource.difficulty === 'Beginner' ? '#059669' : resource.difficulty === 'Advanced' ? '#dc2626' : '#2563eb',
+                                            padding: '2px 8px',
+                                            borderRadius: 4,
+                                            fontWeight: 500
+                                        }}>
+                                            {resource.difficulty}
+                                        </span>
+                                        <div style={{ display: 'flex', gap: 5 }}>
+                                            {resource.tags?.slice(0, 2).map(tag => (
+                                                <span key={tag} style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>#{tag}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
-                <h3 style={{ marginBottom: 'var(--space-3)' }}>Coming Soon</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Courses, templates, and guides for Indian founders</p>
-            </div>
+            )}
+
+            {/* Video Player Modal */}
+            {selectedResource && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)' }} onClick={() => setSelectedResource(null)}></div>
+                    <div style={{
+                        background: '#000',
+                        width: '100%',
+                        maxWidth: '1000px',
+                        aspectRatio: '16/9',
+                        borderRadius: 'var(--radius-lg)',
+                        position: 'relative',
+                        boxShadow: 'var(--shadow-xl)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        zIndex: 1001,
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{ padding: '15px 20px', background: 'var(--bg-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>{selectedResource.title}</h3>
+                            <button onClick={() => setSelectedResource(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                                <Icon name="x" size={24} />
+                            </button>
+                        </div>
+                        <div style={{ flex: 1, position: 'relative' }}>
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                src={`https://www.youtube.com/embed/${getYouTubeId(selectedResource.url)}?autoplay=1`}
+                                title={selectedResource.title}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
+                        <div style={{ padding: '15px', background: 'var(--bg-primary)', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => handleComplete(selectedResource)}
+                                disabled={completing}
+                            >
+                                {completing ? 'Claiming Points...' : `Complete & Claim Points (+${parseInt(selectedResource.duration?.split(' ')[0] || 10) * 10} XP)`}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
