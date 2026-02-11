@@ -1560,7 +1560,7 @@ function Dashboard() {
                         <div style={{ padding: 'var(--space-5) var(--space-8)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary)' }}>
                             <div>
                                 <h3 style={{ margin: 0 }}>✨ AI Generated Pitch Deck</h3>
-                                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Strategic Draft • google/gemini-1.5-flash:free</p>
+                                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Strategic Draft • meta-llama/llama-3.1-8b:free</p>
                             </div>
                             <button className="btn btn-outline btn-sm" onClick={() => setCurrentDeck(null)}>Close</button>
                         </div>
@@ -1993,7 +1993,7 @@ function CopilotTab({ user, ideas }) {
                     </div>
                     <div>
                         <div style={{ fontWeight: 700 }}>AI Strategic Advisor</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600 }}>Powered by DeepMind Gemini</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600 }}>Powered by FoundryAI Intelligence</div>
                     </div>
                 </div>
 

@@ -468,7 +468,7 @@ app.post('/api/copilot/chat', async (req, res) => {
                 "X-Title": "FoundryAI" // Optional
             },
             body: JSON.stringify({
-                model: "google/gemini-flash-1.5:free",
+                model: "meta-llama/llama-3.1-8b-instruct:free",
                 messages: apiMessages
             })
         });
@@ -537,7 +537,7 @@ app.post('/api/ideas/:id/pitch-deck', async (req, res) => {
                 "X-Title": "FoundryAI"
             },
             body: JSON.stringify({
-                model: "google/gemini-flash-1.5:free",
+                model: "meta-llama/llama-3.1-8b-instruct:free",
                 messages: [{ role: "user", content: prompt }]
             })
         });
